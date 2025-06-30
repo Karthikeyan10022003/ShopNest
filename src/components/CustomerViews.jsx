@@ -3,13 +3,18 @@ import {
   Search, Filter, Plus, ShoppingCart, Heart, Eye, Star, Trash2, 
   Package, CreditCard, DollarSign, ShoppingBag, Lock, Share2,
   MapPin, Truck, Clock, Shield, Award, Gift, Percent, Grid,
-  List, SlidersHorizontal, ArrowLeft, ArrowRight, Minus
+  List, SlidersHorizontal, ArrowLeft, ArrowRight, Minus,X
 } from 'lucide-react';
 import { Card, CardContent, Button, Badge } from './ui';
 import { categoriesAPI, couponsAPI } from '../api/mockData';
 
 // Enhanced Product Card with advanced features
-const ProductCard = ({ product, onAddToCart, onAddToWishlist, showActions = true, viewMode = 'grid' }) => {
+const ProductCard = ({ product, onAddToCart, onAddToWishlist, onViewDetails,showActions = true, viewMode = 'grid' }) => {
+  // Add this state at the top of CustomerViews component, with other useState declarations
+
+
+// Add this component inside CustomerViews, before the other view components
+
   const [selectedVariant, setSelectedVariant] = useState(product.variants?.[0] || null);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -143,9 +148,13 @@ const ProductCard = ({ product, onAddToCart, onAddToWishlist, showActions = true
             >
               <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
             </button>
-            <button className="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-blue-50 hover:text-blue-500 transition-all duration-200">
-              <Eye className="w-4 h-4" />
-            </button>
+            {/* // In ProductCard component, find the eye button and change it to: */}
+<button 
+  onClick={() => onViewDetails?.(product.id)}
+  className="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-blue-50 hover:text-blue-500 transition-all duration-200"
+>
+  <Eye className="w-4 h-4" />
+</button>
             <button className="p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-lg hover:bg-green-50 hover:text-green-500 transition-all duration-200">
               <Share2 className="w-4 h-4" />
             </button>
@@ -285,6 +294,566 @@ const CustomerViews = ({
   auth,
   onLogout 
 }) => {
+  // Add this with your other useState declarations in CustomerViews
+const [selectedOrderId, setSelectedOrderId] = useState(null);
+  // Add this component inside CustomerViews, after ProductDetailView
+const OrderDetailView = () => {
+  const order = orders.find(o => o.id === selectedOrderId);
+  
+  if (!order) return null;
+
+  // Order status progression
+  const orderSteps = [
+    { 
+      id: 1, 
+      title: 'Order Placed', 
+      description: 'We have received your order',
+      icon: Package,
+      completed: true,
+      date: order.date,
+      time: '10:30 AM'
+    },
+    { 
+      id: 2, 
+      title: 'Order Confirmed', 
+      description: 'Your order has been confirmed',
+      icon: Shield,
+      completed: true,
+      date: order.date,
+      time: '10:45 AM'
+    },
+    { 
+      id: 3, 
+      title: 'Processing', 
+      description: 'We are preparing your items',
+      icon: Clock,
+      completed: order.status !== 'Processing',
+      current: order.status === 'Processing',
+      date: order.date,
+      time: '2:15 PM'
+    },
+    { 
+      id: 4, 
+      title: 'Dispatched', 
+      description: 'Your order is on the way',
+      icon: Truck,
+      completed: order.status === 'Shipped' || order.status === 'Delivered',
+      current: order.status === 'Shipped',
+      date: order.status === 'Shipped' || order.status === 'Delivered' ? order.date : null,
+      time: '4:20 PM'
+    },
+    { 
+      id: 5, 
+      title: 'Out for Delivery', 
+      description: 'Your order is out for delivery',
+      icon: MapPin,
+      completed: order.status === 'Delivered',
+      current: order.status === 'Out for Delivery',
+      date: order.status === 'Delivered' ? order.date : null,
+      time: order.status === 'Delivered' ? '11:30 AM' : null
+    },
+    { 
+      id: 6, 
+      title: 'Delivered', 
+      description: 'Your order has been delivered',
+      icon: Award,
+      completed: order.status === 'Delivered',
+      current: false,
+      date: order.status === 'Delivered' ? order.date : null,
+      time: order.status === 'Delivered' ? '2:45 PM' : null
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center space-x-4">
+        <button
+          onClick={() => setSelectedOrderId(null)}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-gray-900">Order Details</h1>
+          <p className="text-gray-600">Order {order.id} • Placed on {order.date}</p>
+        </div>
+        <Badge variant={
+          order.status === 'Delivered' ? 'success' : 
+          order.status === 'Processing' ? 'warning' : 
+          order.status === 'Shipped' ? 'info' : 'default'
+        } size="lg">
+          {order.status}
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Order Tracking */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-xl font-semibold mb-6 flex items-center">
+                <MapPin className="w-6 h-6 mr-2 text-blue-600" />
+                Track Your Order
+              </h3>
+              
+              {/* Progress Timeline */}
+              <div className="relative">
+                {orderSteps.map((step, index) => {
+                  const Icon = step.icon;
+                  const isLast = index === orderSteps.length - 1;
+                  
+                  return (
+                    <div key={step.id} className="relative flex items-start space-x-4 pb-8">
+                      {/* Connecting Line */}
+                      {!isLast && (
+                        <div className={`absolute left-6 top-12 w-0.5 h-16 ${
+                          step.completed ? 'bg-green-500' : 
+                          step.current ? 'bg-blue-500' : 'bg-gray-200'
+                        }`} />
+                      )}
+                      
+                      {/* Step Icon */}
+                      <div className={`relative z-10 flex items-center justify-center w-12 h-12 rounded-full border-4 transition-all duration-300 ${
+                        step.completed 
+                          ? 'bg-green-500 border-green-500 text-white' 
+                          : step.current 
+                            ? 'bg-blue-500 border-blue-500 text-white animate-pulse' 
+                            : 'bg-white border-gray-300 text-gray-400'
+                      }`}>
+                        <Icon className="w-5 h-5" />
+                      </div>
+                      
+                      {/* Step Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className={`text-lg font-semibold ${
+                            step.completed ? 'text-green-700' : 
+                            step.current ? 'text-blue-700' : 'text-gray-500'
+                          }`}>
+                            {step.title}
+                          </h4>
+                          {step.date && (
+                            <div className="text-right">
+                              <p className="text-sm font-medium text-gray-700">{step.date}</p>
+                              {step.time && (
+                                <p className="text-xs text-gray-500">{step.time}</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <p className={`text-sm mt-1 ${
+                          step.completed || step.current ? 'text-gray-700' : 'text-gray-400'
+                        }`}>
+                          {step.description}
+                        </p>
+                        
+                        {/* Current Step Animation */}
+                        {step.current && (
+                          <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                              <span className="text-sm font-medium text-blue-800">
+                                Currently in progress...
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Tracking Number */}
+              {order.trackingNumber && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Tracking Number</p>
+                      <p className="text-lg font-mono text-gray-900">{order.trackingNumber}</p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Estimated Delivery */}
+              {order.status !== 'Delivered' && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium text-blue-800">Estimated Delivery</p>
+                      <p className="text-sm text-blue-600">
+                        {new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString()} by 6:00 PM
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Order Summary */}
+        <div className="space-y-6">
+          {/* Order Items */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Order Items</h3>
+              <div className="space-y-4">
+                {order.products?.map((item, index) => (
+                  <div key={index} className="flex items-center space-x-3">
+                    <img
+                      src={item.image || 'https://via.placeholder.com/60'}
+                      alt={item.name}
+                      className="w-15 h-15 object-cover rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{item.name}</h4>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-sm text-gray-500">Qty: {item.quantity || 1}</span>
+                        <span className="font-semibold text-gray-900">${item.price}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Delivery Address */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <MapPin className="w-5 h-5 mr-2" />
+                Delivery Address
+              </h3>
+              <div className="space-y-2">
+                <p className="font-medium">{order.shippingAddress?.name || auth.user.name}</p>
+                <p className="text-gray-600">
+                  {order.shippingAddress?.address || '123 Main Street'}<br />
+                  {order.shippingAddress?.city || 'New York'}, {order.shippingAddress?.state || 'NY'} {order.shippingAddress?.zipCode || '10001'}<br />
+                  {order.shippingAddress?.country || 'USA'}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Phone: {order.shippingAddress?.phone || '+1 (555) 123-4567'}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Info */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center">
+                <CreditCard className="w-5 h-5 mr-2" />
+                Payment Information
+              </h3>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Payment Method</span>
+                  <span className="font-medium">{order.paymentMethod || 'Credit Card'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Payment Status</span>
+                  <Badge variant="success" size="sm">{order.paymentStatus || 'Paid'}</Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Total Amount</span>
+                  <span className="text-lg font-bold text-green-600">${order.total?.toFixed(2)}</span>
+                </div>
+                {order.appliedCoupon && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Coupon Applied</span>
+                    <span className="font-medium">{order.appliedCoupon}</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Order Actions */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-3">
+                {order.status !== 'Delivered' && (
+                  <Button variant="outline" className="w-full">
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel Order
+                  </Button>
+                )}
+                <Button variant="outline" className="w-full">
+                  <Package className="w-4 h-4 mr-2" />
+                  Download Invoice
+                </Button>
+                {order.status === 'Delivered' && (
+                  <Button className="w-full">
+                    <Heart className="w-4 h-4 mr-2" />
+                    Reorder Items
+                  </Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const ProductDetailView = () => {
+  const product = products.find(p => p.id === selectedProductId);
+  
+  if (!product) return null;
+
+  return (
+    <div className="space-y-6">
+      {/* Header with back button */}
+      <div className="flex items-center space-x-4">
+        <button
+          onClick={() => setSelectedProductId(null)}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+          <p className="text-gray-600">{product.brand} • {product.category}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Product Images */}
+        <div className="space-y-4">
+          <div className="relative">
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full h-96 object-cover rounded-2xl shadow-lg"
+            />
+            {product.discount > 0 && (
+              <Badge variant="danger" className="absolute top-4 left-4" size="lg">
+                -{product.discount}% OFF
+              </Badge>
+            )}
+          </div>
+          
+          {/* Additional images if available */}
+          {product.images && product.images.length > 1 && (
+            <div className="grid grid-cols-4 gap-2">
+              {product.images.slice(1, 5).map((img, index) => (
+                <img
+                  key={index}
+                  src={img}
+                  alt={`${product.name} ${index + 2}`}
+                  className="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-75 transition-opacity"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Product Details */}
+        <div className="space-y-6">
+          {/* Price and Rating */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <span className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                ${product.price}
+              </span>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <span className="text-2xl text-gray-400 line-through">${product.originalPrice}</span>
+              )}
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-1">
+                {[...Array(5)].map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`w-5 h-5 ${
+                      i < Math.floor(product.rating) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                    }`}
+                  />
+                ))}
+                <span className="text-lg font-medium ml-2">{product.rating}</span>
+              </div>
+              <span className="text-gray-500">({product.reviews} reviews)</span>
+            </div>
+
+            <Badge variant={product.stock > 20 ? 'success' : product.stock > 0 ? 'warning' : 'danger'} size="lg">
+              {product.stock > 0 ? `${product.stock} in stock` : 'Out of Stock'}
+            </Badge>
+          </div>
+
+          {/* Description */}
+          {product.description && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Description</h3>
+              <p className="text-gray-700 leading-relaxed">{product.description}</p>
+            </div>
+          )}
+
+          {/* Features */}
+          {product.features && product.features.length > 0 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Key Features</h3>
+              <div className="grid grid-cols-1 gap-2">
+                {product.features.map((feature, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="text-gray-700">{feature}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Variants */}
+          {product.variants && product.variants.length > 1 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Choose Variant</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {product.variants.map((variant) => (
+                  <div
+                    key={variant.id}
+                    className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition-colors"
+                  >
+                    <p className="font-medium">{variant.name}</p>
+                    <p className="text-blue-600 font-bold">${variant.price}</p>
+                    <p className="text-sm text-gray-500">{variant.stock} available</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Colors */}
+          {product.colors && product.colors.length > 1 && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Available Colors</h3>
+              <div className="flex space-x-3">
+                {product.colors.map((color, index) => (
+                  <div key={index} className="text-center">
+                    <div
+                      className="w-10 h-10 rounded-full border-2 border-gray-300 hover:border-blue-500 cursor-pointer transition-colors mb-1"
+                      style={{ backgroundColor: color.toLowerCase() }}
+                      title={color}
+                    />
+                    <span className="text-xs text-gray-600">{color}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Specifications */}
+          {product.specifications && (
+            <div>
+              <h3 className="text-lg font-semibold mb-3">Specifications</h3>
+              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                {Object.entries(product.specifications).map(([key, value]) => (
+                  <div key={key} className="flex justify-between">
+                    <span className="text-gray-600">{key}</span>
+                    <span className="font-medium">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Delivery Info */}
+          <div className="bg-blue-50 rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-3">Delivery Information</h3>
+            <div className="space-y-2">
+              {product.freeShipping && (
+                <div className="flex items-center space-x-2 text-green-600">
+                  <Truck className="w-4 h-4" />
+                  <span>Free shipping available</span>
+                </div>
+              )}
+              {product.fastDelivery && (
+                <div className="flex items-center space-x-2 text-blue-600">
+                  <Clock className="w-4 h-4" />
+                  <span>Same-day delivery available</span>
+                </div>
+              )}
+              {product.returnable && (
+                <div className="flex items-center space-x-2 text-purple-600">
+                  <Shield className="w-4 h-4" />
+                  <span>7-day return policy</span>
+                </div>
+              )}
+              {product.warranty && (
+                <div className="flex items-center space-x-2 text-gray-600">
+                  <Award className="w-4 h-4" />
+                  <span>{product.warranty} warranty</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-4">
+            <Button
+              onClick={() => setCart(prev => [...prev, product])}
+              disabled={product.stock === 0}
+              className="flex-1"
+              size="lg"
+            >
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (!wishlist.some(item => item.id === product.id)) {
+                  setWishlist(prev => [...prev, product]);
+                }
+              }}
+              size="lg"
+              className="px-6"
+            >
+              <Heart className="w-5 h-5" />
+            </Button>
+            <Button variant="outline" size="lg" className="px-6">
+              <Share2 className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Related Products */}
+      <div className="mt-12">
+        <h3 className="text-2xl font-bold mb-6">Related Products</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {products
+            .filter(p => p.category === product.category && p.id !== product.id)
+            .slice(0, 4)
+            .map((relatedProduct) => (
+              <ProductCard
+                key={relatedProduct.id}
+                product={relatedProduct}
+                onAddToCart={(product) => setCart(prev => [...prev, product])}
+                onAddToWishlist={(product) => {
+                  if (!wishlist.some(item => item.id === product.id)) {
+                    setWishlist(prev => [...prev, product]);
+                  }
+                }}
+                onViewDetails={setSelectedProductId}
+                viewMode="grid"
+              />
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
   const [viewMode, setViewMode] = useState('grid');
   const [sortBy, setSortBy] = useState('relevance');
   const [filters, setFilters] = useState({
@@ -484,6 +1053,7 @@ const CustomerViews = ({
                     setWishlist(prev => [...prev, product]);
                   }
                 }}
+                onViewDetails={setSelectedProductId}
                 viewMode="grid"
               />
             ))}
@@ -500,6 +1070,7 @@ const CustomerViews = ({
                     setWishlist(prev => [...prev, product]);
                   }
                 }}
+                onViewDetails={setSelectedProductId}
                 viewMode="list"
               />
             ))}
@@ -944,9 +1515,14 @@ const CustomerViews = ({
                   </div>
                   
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      View Details
-                    </Button>
+                    {/* // In CustomerOrdersView, find the "View Details" button and update it */}
+<Button 
+  variant="outline" 
+  size="sm"
+  onClick={() => setSelectedOrderId(order.id)}
+>
+  View Details
+</Button>
                     {order.status === 'Delivered' && (
                       <Button variant="outline" size="sm">
                         Reorder
@@ -1019,6 +1595,7 @@ const CustomerViews = ({
                 onAddToWishlist={(product) => {
                   setWishlist(prev => prev.filter(item => item.id !== product.id));
                 }}
+                onViewDetails={setSelectedProductId}
                 showActions={true}
               />
             ))}
@@ -1180,6 +1757,12 @@ const CustomerViews = ({
       </div>
     </div>
   );
+  if (selectedOrderId) {
+  return <OrderDetailView />;
+}
+  if (selectedProductId) {
+  return <ProductDetailView />;
+}
 
   // Render based on current view
   switch (currentView) {
