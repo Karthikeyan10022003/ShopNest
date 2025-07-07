@@ -28,18 +28,34 @@ const Products = ({
   }, [searchTerm, products]);
 
   const handleAddProduct = () => {
-    const newEntry = {
-      ...newProduct,
-      id: products.length + 1,
-      price: parseFloat(newProduct.price) || 0,
-      stock: parseInt(newProduct.stock) || 0,
-      rating: 4.5,
-      reviews: 0
-    };
-    setProducts([...products, newEntry]);
-    setNewProduct({ name: '', price: '', stock: '', category: '', status: 'active', image: '' });
-    setShowAddProductModal(false);
+  console.log('=== ADD PRODUCT DEBUG ===');
+  console.log('Current products length:', products.length);
+  console.log('New product data:', newProduct);
+  console.log('setProducts function:', typeof setProducts);
+  
+  const newEntry = {
+    ...newProduct,
+    id: products.length + 1,
+    price: parseFloat(newProduct.price) || 0,
+    stock: parseInt(newProduct.stock) || 0,
+    rating: 4.5,
+    reviews: 0
   };
+  
+  console.log('New entry to add:', newEntry);
+  
+  // Add to products array
+  const updatedProducts = [...products, newEntry];
+  console.log('Updated products array:', updatedProducts);
+  
+  setProducts(updatedProducts);
+  
+  // Reset form
+  setNewProduct({ name: '', price: '', stock: '', category: '', status: 'active', image: '' });
+  setShowAddProductModal(false);
+  
+  console.log('Product should be added!');
+};
 
   const handleDeleteProduct = (id) => {
     setProducts(prev => prev.filter(p => p.id !== id));

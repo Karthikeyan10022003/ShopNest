@@ -7,17 +7,48 @@ import CustomerViews from './components/CustomerViews';
 import { Orders, Customers, Analytics, Marketing, Settings } from './components/OtherViews';
 import { useAuth } from './hooks/useAuth';
 import { mockData } from './api/mockData';
+import { useTenant } from './context/TenantContext';
+import { useTenantProducts } from './hooks/useTenantData';
+
 
 const App = () => {
-  const { auth, login, logout, isLoading } = useAuth();
+  const { auth, login, logout, isLoading: authLoading, isInitialized } = useAuth();
+  const { tenant, loading: tenantLoading } = useTenant();
+ // Comment out useTenantProducts for now since it's causing issues
+// const { products, createProduct, updateProduct, deleteProduct } = useTenantProducts();
+
+// Fix the useState - you need both products AND setProducts
+const [products, setProducts] = useState(mockData.products);  // ✅ CORRECT!
+
+// Add these functions for now
+const createProduct = async (data) => {
+  setProducts(prev => [...prev, { ...data, id: Date.now() }]);
+};
+const updateProduct = async (id, data) => {
+  setProducts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+};
+const deleteProduct = async (id) => {
+  setProducts(prev => prev.filter(p => p.id !== id));
+};
   const [currentView, setCurrentView] = useState('dashboard');
   const [searchTerm, setSearchTerm] = useState('');
-  const [products, setProducts] = useState(mockData.products);
   const [cart, setCart] = useState([]);
   const [orders, setOrders] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
+
+  // Show loading while initializing
+  if (!isInitialized || tenantLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-white border-t-transparent mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading your store...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Handle customer registration on login
   const handleLogin = (email, role) => {
@@ -42,6 +73,12 @@ const App = () => {
     setWishlist([]);
   };
 
+  // Show login if not authenticated
+  if (!auth.role) {
+    return <Auth onLogin={handleLogin} isLoading={authLoading} />;
+  }
+
+
   // Render current view based on user role and selection
   const renderCurrentView = () => {
     if (auth.role === 'customer') {
@@ -53,7 +90,7 @@ const App = () => {
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           cart={cart}
-          setCart={setCart}
+          setCart={setCart}  
           wishlist={wishlist}
           setWishlist={setWishlist}
           orders={orders}

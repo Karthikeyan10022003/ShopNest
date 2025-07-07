@@ -294,11 +294,299 @@ const CustomerViews = ({
   auth,
   onLogout 
 }) => {
+  // Add this function inside CustomerViews component
+ const generateInvoice = (order) => {
+    const subtotal = order.products?.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0) || order.total * 0.85;
+    const tax = subtotal * 0.1;
+    const shipping = 0; // Free shipping
+    const discount = order.appliedCoupon ? subtotal * 0.1 : 0;
+    
+    const invoiceHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Invoice - ${order.id}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid #3B82F6;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+          }
+          .company-info {
+            text-align: left;
+          }
+          .company-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3B82F6;
+            margin: 0 0 10px 0;
+          }
+          .invoice-info {
+            text-align: right;
+          }
+          .invoice-title {
+            font-size: 32px;
+            font-weight: bold;
+            color: #3B82F6;
+            margin: 0 0 10px 0;
+          }
+          .invoice-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+          }
+          .detail-section h3 {
+            color: #3B82F6;
+            border-bottom: 1px solid #E5E7EB;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+          }
+          .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+          }
+          .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+          }
+          .items-table th {
+            background: #3B82F6;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+          }
+          .items-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+          }
+          .items-table tr:nth-child(even) {
+            background: #F9FAFB;
+          }
+          .total-section {
+            margin-left: auto;
+            width: 300px;
+            border: 2px solid #3B82F6;
+            padding: 20px;
+            border-radius: 8px;
+          }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+          }
+          .total-row.final {
+            font-size: 18px;
+            font-weight: bold;
+            border-top: 2px solid #3B82F6;
+            padding-top: 10px;
+            color: #3B82F6;
+          }
+          .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #6B7280;
+            border-top: 1px solid #E5E7EB;
+            padding-top: 20px;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          .status-delivered { background: #DEF7EC; color: #03543F; }
+          .status-processing { background: #FEF3C7; color: #92400E; }
+          .status-shipped { background: #DBEAFE; color: #1E40AF; }
+          .status-cancelled { background: #FEE2E2; color: #991B1B; }
+          @media print {
+            body { margin: 0; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="company-info">
+            <h1 class="company-name">TechStore Pro</h1>
+            <p>123 Business Street<br>
+            Tech City, TC 12345<br>
+            Phone: (555) 123-4567<br>
+            Email: support@techstore.com</p>
+          </div>
+          <div class="invoice-info">
+            <h1 class="invoice-title">INVOICE</h1>
+            <p><strong>Invoice #:</strong> INV-${order.id.toString().replace('#', '')}<br>
+            <strong>Order #:</strong> ${order.id}<br>
+            <strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+          </div>
+        </div>
+
+        <div class="invoice-details">
+          <div class="detail-section">
+            <h3>Bill To:</h3>
+            <p><strong>${auth?.user?.name || 'Customer'}</strong><br>
+            ${auth?.user?.email || 'customer@email.com'}<br>
+            ${order.shippingAddress?.address || '123 Main Street'}<br>
+            ${order.shippingAddress?.city || 'New York'}, ${order.shippingAddress?.state || 'NY'} ${order.shippingAddress?.zipCode || '10001'}<br>
+            ${order.shippingAddress?.country || 'USA'}</p>
+          </div>
+          <div class="detail-section">
+            <h3>Order Details:</h3>
+            <div class="detail-row">
+              <span>Order Date:</span>
+              <span>${order.date}</span>
+            </div>
+            <div class="detail-row">
+              <span>Status:</span>
+              <span class="status-badge status-${order.status.toLowerCase().replace(' ', '-')}">${order.status}</span>
+            </div>
+            <div class="detail-row">
+              <span>Payment Method:</span>
+              <span>${order.paymentMethod || 'Credit Card'}</span>
+            </div>
+            <div class="detail-row">
+              <span>Payment Status:</span>
+              <span>${order.paymentStatus || 'Paid'}</span>
+            </div>
+            ${order.trackingNumber ? `
+            <div class="detail-row">
+              <span>Tracking #:</span>
+              <span>${order.trackingNumber}</span>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${order.products?.map(item => `
+              <tr>
+                <td>
+                  <strong>${item.name || 'Product'}</strong><br>
+                  <small>${item.brand || ''} ${item.category ? '• ' + item.category : ''}</small>
+                </td>
+                <td>${item.quantity || 1}</td>
+                <td>$${(item.price || 0).toFixed(2)}</td>
+                <td>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+              </tr>
+            `).join('') || `
+              <tr>
+                <td colspan="4" style="text-align: center; color: #666;">No items found</td>
+              </tr>
+            `}
+          </tbody>
+        </table>
+
+        <div class="total-section">
+          <div class="total-row">
+            <span>Subtotal:</span>
+            <span>$${subtotal.toFixed(2)}</span>
+          </div>
+          ${discount > 0 ? `
+          <div class="total-row">
+            <span>Discount${order.appliedCoupon ? ' (' + order.appliedCoupon + ')' : ''}:</span>
+            <span>-$${discount.toFixed(2)}</span>
+          </div>
+          ` : ''}
+          <div class="total-row">
+            <span>Tax:</span>
+            <span>$${tax.toFixed(2)}</span>
+          </div>
+          <div class="total-row">
+            <span>Shipping:</span>
+            <span>Free</span>
+          </div>
+          <div class="total-row final">
+            <span>Total:</span>
+            <span>$${(order.total || 0).toFixed(2)}</span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p><strong>Thank you for your business!</strong></p>
+          <p>For questions about this invoice, please contact us at support@techstore.com or (555) 123-4567</p>
+          <p>TechStore Pro - Your Premium E-commerce Platform</p>
+          <p><small>This is a computer-generated invoice and does not require a signature.</small></p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return invoiceHTML;
+  };
+
+
+// Add this function to handle the download
+ const downloadInvoice = (order) => {
+    try {
+      console.log('Downloading invoice for order:', order);
+      
+      const invoiceHTML = generateInvoice(order);
+      
+      // Create a blob with the HTML content
+      const blob = new Blob([invoiceHTML], { type: 'text/html;charset=utf-8' });
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `Invoice-${order.id.toString().replace('#', '').replace('ORD-', '')}-${order.date}.html`;
+      link.style.display = 'none';
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      // Show success message
+      setTimeout(() => {
+        alert('📄 Invoice downloaded successfully!');
+      }, 200);
+      
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      alert('❌ Failed to download invoice. Error: ' + error.message);
+    }
+  };
   // Add this with your other useState declarations in CustomerViews
 const [selectedOrderId, setSelectedOrderId] = useState(null);
   // Add this component inside CustomerViews, after ProductDetailView
 const OrderDetailView = () => {
   const order = orders.find(o => o.id === selectedOrderId);
+
   
   if (!order) return null;
 
@@ -587,7 +875,7 @@ const OrderDetailView = () => {
                     Cancel Order
                   </Button>
                 )}
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={()=>downloadInvoice(order)}>
                   <Package className="w-4 h-4 mr-2" />
                   Download Invoice
                 </Button>
@@ -1514,21 +1802,29 @@ const OrderDetailView = () => {
                     </div>
                   </div>
                   
-                  <div className="flex space-x-2">
-                    {/* // In CustomerOrdersView, find the "View Details" button and update it */}
-<Button 
-  variant="outline" 
-  size="sm"
-  onClick={() => setSelectedOrderId(order.id)}
->
-  View Details
-</Button>
-                    {order.status === 'Delivered' && (
-                      <Button variant="outline" size="sm">
-                        Reorder
-                      </Button>
-                    )}
-                  </div>
+                  // In CustomerOrdersView, in the order actions section:
+<div className="flex space-x-2">
+  <Button 
+    variant="outline" 
+    size="sm"
+    onClick={() => setSelectedOrderId(order.id)}
+  >
+    View Details
+  </Button>
+  <Button 
+    variant="outline" 
+    size="sm"
+    onClick={() => downloadInvoice(order)}
+  >
+    <Package className="w-4 h-4 mr-2" />
+    Invoice
+  </Button>
+  {order.status === 'Delivered' && (
+    <Button variant="outline" size="sm">
+      Reorder
+    </Button>
+  )}
+</div>
                 </div>
               </CardContent>
             </Card>

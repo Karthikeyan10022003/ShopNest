@@ -69,6 +69,16 @@ export const TenantProvider = ({ children }) => {
       setLoading(false);
     }
   };
+    const resolveTenantFromURL = async () => {
+    const hostname = window.location.hostname;
+    const subdomain = extractSubdomain(hostname);
+    
+    if (!subdomain || subdomain === 'www') {
+      return await apiClient.resolveTenantByDomain(hostname);
+    }
+    
+    return await apiClient.resolveTenantBySubdomain(subdomain);
+  };
 
   const switchTenant = async (tenantId) => {
     try {
@@ -163,8 +173,9 @@ export const TenantProvider = ({ children }) => {
     );
   }
 
+ 
   return (
-    <TenantContext.Provider value={value}>
+    <TenantContext.Provider value={{ tenant, loading, error, refreshTenant }}>
       {children}
     </TenantContext.Provider>
   );
