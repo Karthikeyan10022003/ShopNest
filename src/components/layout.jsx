@@ -105,11 +105,11 @@ const Layout = ({ auth, onLogout, currentView, setCurrentView, children }) => {
         <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
           <div className="flex items-center space-x-3 w-full">
             <div className="h-10 w-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-              {auth.user.name.charAt(0)}
+              K
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{auth.user.name}</p>
-              <p className="text-xs text-gray-500 truncate">{auth.user.email}</p>
+              <p className="text-sm font-medium text-gray-900 truncate">Karthik</p>
+              <p className="text-xs text-gray-500 truncate">karthik@gmail.com</p>
             </div>
             <button
               onClick={onLogout}
@@ -144,7 +144,7 @@ const Layout = ({ auth, onLogout, currentView, setCurrentView, children }) => {
             </span>
           </div>
           <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-            {auth.user.name.charAt(0)}
+            K
           </div>
         </div>
       </div>
@@ -174,11 +174,11 @@ const Layout = ({ auth, onLogout, currentView, setCurrentView, children }) => {
             </div>
             <div className="flex items-center space-x-3">
               <div className="h-8 w-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                {auth.user.name.charAt(0)}
+                K
               </div>
               <div className="hidden sm:block">
-                <p className="text-sm font-medium text-gray-900">{auth.user.name}</p>
-                <p className="text-xs text-gray-500">{auth.user.email}</p>
+                <p className="text-sm font-medium text-gray-900">Karthik</p>
+                <p className="text-xs text-gray-500">karthik@gmail.com</p>
               </div>
             </div>
           </div>
