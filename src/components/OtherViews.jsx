@@ -2,22 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from './ui';
 import { Users, Package, BarChart3, Mail, Settings as SettingsIcon } from 'lucide-react';
 
-// Orders Component
-export const Orders = () => (
-  <div className="space-y-6">
-    <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-      Order Management
-    </h1>
-    <p className="text-gray-600">Track and manage all your orders efficiently</p>
-    <Card className="text-center py-16">
-      <CardContent>
-        <Package className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Orders Module</h3>
-        <p className="text-gray-600">Order management interface would be implemented here</p>
-      </CardContent>
-    </Card>
-  </div>
-);
+// In src/components/OtherViews.jsx, replace the Orders component with:
+export { default as Orders } from './AdminOrdersComponent.jsx';
 
 // Customers Component
 export const Customers = ({ customers }) => (

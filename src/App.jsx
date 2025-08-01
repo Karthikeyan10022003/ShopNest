@@ -16,7 +16,7 @@ const App = () => {
   const { tenant, loading: tenantLoading } = useTenant();
  // Comment out useTenantProducts for now since it's causing issues
 // const { products, createProduct, updateProduct, deleteProduct } = useTenantProducts();
-
+  // const [orders, setOrders] = useState([]);  
 // Fix the useState - you need both products AND setProducts
 const [products, setProducts] = useState(mockData.products);  // ✅ CORRECT!
 
@@ -122,8 +122,9 @@ const deleteProduct = async (id) => {
             setShowAddProductModal={setShowAddProductModal}
           />
         );
+      // In your renderCurrentView function in App.jsx
       case 'orders':
-        return <Orders />;
+        return <Orders orders={orders} setOrders={setOrders} />;
       case 'customers':
         return <Customers customers={customers} />;
       case 'analytics':
